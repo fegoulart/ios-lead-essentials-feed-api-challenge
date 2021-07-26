@@ -4,7 +4,7 @@
 
 import Foundation
 
-struct Image: Decodable {
+private struct Image: Decodable {
 	let image_id: UUID
 	let image_desc: String?
 	let image_loc: String?
