@@ -5,10 +5,10 @@
 import Foundation
 
 struct Image: Decodable {
-	let id: UUID
-	let description: String?
-	let location: String?
-	let url: URL
+	let image_id: UUID
+	let image_desc: String?
+	let image_loc: String?
+	let image_url: URL
 }
 
 public final class RemoteFeedLoader: FeedLoader {
@@ -50,7 +50,7 @@ public final class RemoteFeedLoader: FeedLoader {
 		private static var OK_200: Int { return 200 }
 
 		private struct Root: Decodable {
-			let images: [Image]
+			let items: [Image]
 		}
 
 		static func map(_ data: Data, from response: HTTPURLResponse) throws -> [Image] {
@@ -58,13 +58,13 @@ public final class RemoteFeedLoader: FeedLoader {
 			else {
 				throw RemoteFeedLoader.Error.invalidData
 			}
-			return root.images
+			return root.items
 		}
 	}
 }
 
 private extension Array where Element == Image {
 	func toModels() -> [FeedImage] {
-		return map { FeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+		return map { FeedImage(id: $0.image_id, description: $0.image_desc, location: $0.image_loc, url: $0.image_url) }
 	}
 }
