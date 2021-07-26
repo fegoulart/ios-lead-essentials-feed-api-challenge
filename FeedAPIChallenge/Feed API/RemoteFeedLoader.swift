@@ -4,13 +4,6 @@
 
 import Foundation
 
-private struct Image: Decodable {
-	let image_id: UUID
-	let image_desc: String?
-	let image_loc: String?
-	let image_url: URL
-}
-
 public final class RemoteFeedLoader: FeedLoader {
 	private let url: URL
 	private let client: HTTPClient
@@ -42,7 +35,7 @@ public final class RemoteFeedLoader: FeedLoader {
 	private static func map(_ data: Data, from response: HTTPURLResponse) -> Result {
 		do {
 			let items = try FeedImagesMapper.map(data, from: response)
-			return .success(items.toModels())
+			return .success(items)
 		} catch {
 			return .failure(error)
 		}
@@ -54,19 +47,20 @@ public final class RemoteFeedLoader: FeedLoader {
 		private struct Root: Decodable {
 			let items: [Image]
 		}
+		
+		private struct Image: Decodable {
+			let image_id: UUID
+			let image_desc: String?
+			let image_loc: String?
+			let image_url: URL
+		}
 
-		static func map(_ data: Data, from response: HTTPURLResponse) throws -> [Image] {
+		static func map(_ data: Data, from response: HTTPURLResponse) throws -> [FeedImage] {
 			guard response.statusCode == OK_200, let root = try? JSONDecoder().decode(Root.self, from: data)
 			else {
 				throw RemoteFeedLoader.Error.invalidData
 			}
-			return root.items
+			return root.items.map { FeedImage(id: $0.image_id, description: $0.image_desc, location: $0.image_loc, url: $0.image_url) }
 		}
-	}
-}
-
-private extension Array where Element == Image {
-	func toModels() -> [FeedImage] {
-		return map { FeedImage(id: $0.image_id, description: $0.image_desc, location: $0.image_loc, url: $0.image_url) }
 	}
 }
